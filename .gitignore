@@ -1,5 +1,6 @@
 # Ignore python notebooks specific files
 .ipynb_checkpoints
+__pycache__/
 
 # Ignore .hdf5 files (they're downloaded)
 *.hdf5

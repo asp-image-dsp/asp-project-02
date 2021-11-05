@@ -55,6 +55,9 @@ def anc_primary_secondary_rls(model, G, order, forget, delta, weight_history=Fal
         
         if force_hermitian:
             P = (P + P.T) / 2
+
+        if np.linalg.norm(g_bar) > 10 :
+            print(f"HELP, |g_bar| = {np.linalg.norm(g_bar)}")
         
         y = -np.dot(w.T, rw)
         model.speaker(y)

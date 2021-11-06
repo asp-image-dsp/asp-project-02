@@ -49,10 +49,6 @@ def anc_primary_secondary_rls(model, G, order, forget, delta, weight_history=Fal
         rrls[0] = np.dot(G, rg)
         
         # Adaptation gain computation
-        # g_bar = lambda_inv * np.dot(P, rrls)
-        # g = g_bar / (1 + np.dot(g_bar.T, rrls))
-        # P = lambda_inv * P - np.dot(g, g_bar.T)
-        
         g_bar = lambda_inv * np.dot(P, rrls)
         g = g_bar / (1 + np.dot(g_bar.T, rrls))
         P = lambda_inv * P - np.dot(g, g_bar.T)

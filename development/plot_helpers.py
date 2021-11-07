@@ -232,6 +232,7 @@ def plot_execution_times(times=[[]], lengths=[], labels=[]):
     plt.ylabel("Tiempo de ejecución [s]", fontsize=13)
     plt.xlabel("Largo N de las muestras de ruido", fontsize=13)
     plt.title('Tiempo de ejecución en función del largo de la muestra', fontsize=15)
+    plt.legend()
     plt.grid()
     
     plt.show()

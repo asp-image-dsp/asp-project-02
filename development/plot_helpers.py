@@ -3,7 +3,7 @@ from scipy import signal
 import numpy as np
 from pydsm.audio_weightings import a_weighting
 
-def plot_anc_results(e, w=None, weight_plot='response', labels=None):
+def plot_anc_results(e, w=None, weight_plot='response', labels=None, alpha=None):
     """ Plot the results of the ANC algorithm.
         @param error_history
         @param weight_history
@@ -16,10 +16,13 @@ def plot_anc_results(e, w=None, weight_plot='response', labels=None):
         fig, ax = plt.subplots(1, 1, figsize=(18, 9))
         error_ax = ax
         
+    if alpha is None:
+        alpha = 1
+    
     if labels is None:
         labels = ['Ruido con filtrado pasivo', 'Ruido con ANC']
     for k, error in enumerate(e):
-        error_ax.plot(error, label=labels[k])
+        error_ax.plot(error, label=labels[k], alpha=alpha if k > 0 else 1)
     error_ax.set_ylabel('$e(n)$', fontsize=16)
     error_ax.set_xlabel('$n$', fontsize=16)
     error_ax.grid()
@@ -153,10 +156,14 @@ def plot_frequency_responses(primaries, secondaries, weights, fs, labels=None):
     N = len(primaries)
     
     fig, ax = plt.subplots(N, 1, figsize=(15, N*5))
-
+            
+    if N == 1:
+        ax = [ax]
+        
     plt.subplots_adjust(hspace=0.3)
     
     for k in range(N):
+         
         # Configure plot
         ax[k].set_ylabel('Amplitud [dB]', fontsize=16)
         ax[k].set_xlabel('Frecuencia [kHz]', fontsize=16)

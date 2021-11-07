@@ -183,7 +183,7 @@ def plot_frequency_responses(primaries, secondaries, weights, fs, labels=None):
       
     plt.show()
 
-def plot_error_evolution(passive_noise, anc_errors, nperseg, overlap, fs, labels=['G idéntica', 'G distinta']):
+def plot_error_evolution(passive_noise, anc_errors, nperseg, overlap, fs, labels=['G idéntica', 'G distinta'], title = None):
     """ Plots the attenuation as a function of time, showing the system's adaptation
         @param passive_noise Noise that would be obtained with a passive system
         @param anc_errors    list of ANC output error for different conditions
@@ -211,7 +211,10 @@ def plot_error_evolution(passive_noise, anc_errors, nperseg, overlap, fs, labels
 
     plt.ylabel("NR [dB]", fontsize=13)
     plt.xlabel("t [s]", fontsize=13)
-    plt.title('Atenuación en función del tiempo', fontsize=15)
+    if title is not None:
+        plt.title(title, fontsize=15)
+    else:
+        plt.title('Atenuación en función del tiempo', fontsize=15)
     plt.grid()
     if (len(anc_errors) > 1):
         plt.legend(fontsize=13)

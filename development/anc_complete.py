@@ -62,6 +62,8 @@ def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, f
         g_bar = lambda_inv * np.dot(P, r_rls)
         g = g_bar / (1 + np.dot(g_bar.T, r_rls))
         P = lambda_inv * P - np.dot(g, g_bar.T)
+        P /= np.linalg.norm(P)
+        
         if force_hermitian:
             P = (P + P.T) / 2
         

@@ -141,7 +141,7 @@ def plot_error_analysis(input_noise, output_error, fs, title, a_weighting=False)
     ax[1].set_xlabel('$f$ [kHz]', fontsize=16)
     ax[1].grid()
 
-def plot_frequency_responses(primaries, secondaries, weights, fs):
+def plot_frequency_responses(primaries, secondaries, weights, fs, labels=None):
     """ Plot the frequency responses related to the ANC system.
         P/G is the target frequency response and W is the one reached by
         the FX-LMS algorithm.
@@ -169,10 +169,11 @@ def plot_frequency_responses(primaries, secondaries, weights, fs):
         # Plot P/G 
         ax[k].plot(f_pg / 1e3, 20*np.log10(np.abs(h_pg)), label=f'$P/G$')
         
-        if len(weights) > 1:
-            labels = ['W c/G idéntica', 'W c/G distinta']
-        else:
-            labels = ['W']
+        if labels is None:
+            if len(weights) > 1:
+                labels = ['W c/G idéntica', 'W c/G distinta']
+            else:
+                labels = ['W']
         # Calculate all W frequency responses
         for j in range(len(weights)):
             f_w, h_w = signal.freqz(weights[j][k], [1.0], fs=fs)

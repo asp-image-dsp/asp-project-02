@@ -57,6 +57,10 @@ def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, f
         model.speaker(y[0])
         e = model.error_microphone()        
         r_rls[0] = np.dot(G, rg)
+
+        # Re-initialise the algorithm if the conditions have changed so much that the error explodes
+        if e > 1:
+            P = np.eye(order) / delta
         
         # Adaptation gain computation
         g_bar = lambda_inv * np.dot(P, r_rls)

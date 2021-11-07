@@ -181,3 +181,56 @@ def plot_frequency_responses(primaries, secondaries, weights, fs):
         ax[k].legend(fontsize=13)
       
     plt.show()
+
+def plot_error_evolution(passive_noise, anc_errors, nperseg, overlap, fs, labels=['G idéntica', 'G distinta']):
+    """ Plots the attenuation as a function of time, showing the system's adaptation
+        @param passive_noise Noise that would be obtained with a passive system
+        @param anc_errors    list of ANC output error for different conditions
+        @param nperseg       Amount of samples used for each segment
+        @param overlap       Segment overlap [0, 1.0] 
+        @param fs            Sampling frequency
+    """
+    # Number of iterations and time axis
+    N = min(len(passive_noise), len(anc_errors[0]))
+    step = int(nperseg*(1 - overlap))
+    it_count = int(N // step)
+    t = np.linspace(0, N / fs, it_count)
+    
+    plt.figure(figsize=(9, 3))
+    
+    # Calculate energies on the time domain
+    Ein = np.array([ np.sum(passive_noise[k*step:(k+1)*step] ** 2) for k in range(it_count)])
+    for i in range(len(anc_errors)):
+        Eout = np.array([ np.sum(anc_errors[i][k*step:(k+1)*step] ** 2) for k in range(it_count)])
+        
+        # Calculate Noise Reductions for each segment
+        NRs = -10*np.log10(Eout / Ein)
+
+        plt.plot(t, NRs, marker='o', label=labels[i])
+
+    plt.ylabel("NR [dB]", fontsize=13)
+    plt.xlabel("t [s]", fontsize=13)
+    plt.title('Atenuación en función del tiempo', fontsize=15)
+    plt.grid()
+    if (len(anc_errors) > 1):
+        plt.legend(fontsize=13)
+    plt.show()
+
+def plot_execution_times(times=[[]], lengths=[], labels=[]):
+    """ Plots the time it took for a given list of algorithms to run with the lengths given.
+        @param times         matrix containing in every row, the list of times it took for a given algorithm to run with the lengths given
+        @param lengths       list of lengths used to run the algorithms
+        @param labels        algorithms' names
+    """
+
+    plt.figure(figsize=(9, 3))
+
+    for i, algorithm_times in enumerate(times):
+        plt.plot(lengths, algorithm_times, marker='o', label=labels[i])
+
+    plt.ylabel("Tiempo de ejecución [s]", fontsize=13)
+    plt.xlabel("Largo N de las muestras de ruido", fontsize=13)
+    plt.title('Tiempo de ejecución en función del largo de la muestra', fontsize=15)
+    plt.grid()
+    
+    plt.show()

@@ -10,10 +10,10 @@ def plot_anc_results(e, w=None, weight_plot='response', labels=None, alpha=None)
     """
     
     if w is not None:
-        fig, ax = plt.subplots(2, 1, figsize=(18, 18))
+        fig, ax = plt.subplots(2, 1, figsize=(8, 8))
         error_ax = ax[0]
     else:
-        fig, ax = plt.subplots(1, 1, figsize=(18, 9))
+        fig, ax = plt.subplots(1, 1, figsize=(8, 8))
         error_ax = ax
         
     if alpha is None:
@@ -57,7 +57,7 @@ def plot_frequency_analysis(p, g, w, fs):
     w_w, h_w = signal.freqz(w, [1.0], fs=fs)
     w_g, h_g = signal.freqz(g, [1.0], fs=fs)
 
-    fig, ax = plt.subplots(2, 1, figsize=(18, 10))
+    fig, ax = plt.subplots(2, 1, figsize=(8, 8))
 
     ax[0].set_ylabel('Amplitud [dB]', fontsize=16)
     ax[0].set_xlabel('Frecuencia [kHz]', fontsize=16)
@@ -116,7 +116,7 @@ def plot_error_analysis(input_noise, output_error, fs, title, a_weighting=False)
         @param a_weighting whether to apply A-weighting or not
     """
     # Calculate total attenuation
-    A, (fnn, Rnn, fee, Ree) = total_attenuation(input_noise, output_error, fs, 2048)
+    A, (fnn, Rnn, fee, Ree) = total_attenuation(input_noise, output_error, fs, 512)
     
     # Calculate frequency response
     H = Ree / Rnn
@@ -127,7 +127,7 @@ def plot_error_analysis(input_noise, output_error, fs, title, a_weighting=False)
         H = apply_a_weighting(fee, H)
     
     # Plot results
-    fig, ax = plt.subplots(1, 2, figsize=(20, 7))
+    fig, ax = plt.subplots(1, 2, figsize=(16, 7))
     fig.suptitle(title + f' - Atenuación total = {A:.2f}dB', fontsize=25)
 
     ax[0].semilogy(fee / 1e3, Ree, label='Espectro de potencia del error de salida')
@@ -140,7 +140,7 @@ def plot_error_analysis(input_noise, output_error, fs, title, a_weighting=False)
     ax[1].semilogy(fnn / 1e3, H, label=f'$E/X$')
     ax[1].tick_params(labelsize=16)
     ax[1].legend(fontsize=16)
-    ax[1].set_ylabel('$Amplitudes$', fontsize=16)
+    ax[1].set_ylabel('$|A| [dB]$', fontsize=16)
     ax[1].set_xlabel('$f$ [kHz]', fontsize=16)
     ax[1].grid()
 

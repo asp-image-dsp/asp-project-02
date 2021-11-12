@@ -1,7 +1,7 @@
 import numpy as np
 import time
 
-def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, force_hermitian=False, p_normalization=True):
+def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, force_hermitian=False, p_normalization=True, lambda_history=False):
     """ Active Noise Cancelling
         Apply the active noise cancelling  RLS-based algorithm to compensate the
         noise by modeling the primary acoustic path and compensating the 
@@ -47,6 +47,8 @@ def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, f
 
     if weight_history:
         w_n = np.zeros((order, N))
+    if lambda_history:
+        lambda_n = np.zeros(N)
     i = 0
     
     # Sample processing loop
@@ -72,9 +74,12 @@ def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, f
         # Algorithm core computation        
         if e > 1:                                      # Re-initialise the algorithm if the conditions 
             P = np.eye(order) / delta                  # have changed so much that the error explodes
+        
         lambda_eff = forget * P_norm                   # Compute the effective forget factor used in the algorithm
-        #if lambda_eff > 1.0:                           # and restrict its value to be always less than 1.0 (to avoid instability)
-        #    lambda_eff = 1.0
+        if (i > 100) and (lambda_eff > 1.0):           # and restrict its value to be always less than 1.0 (to avoid instability)
+            lambda_eff = 1.0
+        if lambda_history:
+            lambda_n[i] = lambda_eff
         g_bar = (1 / lambda_eff) * np.dot(P, r_rls)     
         g = g_bar / (1 + np.dot(g_bar.T, r_rls))
         P = (1 / lambda_eff) * P - np.dot(g, g_bar.T)
@@ -86,11 +91,12 @@ def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, f
         algorithm_duration = algorithm_end - algorithm_start
         
         update_start = time.time()
+        
         # Coefficient updating
         w += g * e        
         e_n[i] = e
         if weight_history:
-            w_n[:,i] = w
+            w_n[:,i] = w[:,0]
         i += 1
         update_end = time.time()
         update_duration = update_end - update_start
@@ -107,7 +113,11 @@ def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, f
     print(f'Algorithm: {round((algorithm_duration_estimated / total_duration) * 100, 3)} %')
     print(f'Update: {round((update_duration_estimated / total_duration) * 100, 3)} %')
     
-    if weight_history:
+    if weight_history and not lambda_history:
         return e_n, w, w_n
+    elif lambda_history and not weight_history:
+        return e_n, w, lambda_n
+    elif weight_history and lambda_history:
+        return e_n, w, w_n, lambda_n
     else:
         return e_n, w

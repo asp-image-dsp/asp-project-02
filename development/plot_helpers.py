@@ -3,7 +3,7 @@ from scipy import signal
 import numpy as np
 from pydsm.audio_weightings import a_weighting
 
-def plot_anc_results(e, w=None, weight_plot='response', labels=None, alpha=None):
+def plot_anc_results(e, w=None, weight_plot='response', labels=None, alpha=None, log_scale=False):
     """ Plot the results of the ANC algorithm.
         @param error_history
         @param weight_history
@@ -22,7 +22,10 @@ def plot_anc_results(e, w=None, weight_plot='response', labels=None, alpha=None)
     if labels is None:
         labels = ['Ruido con filtrado pasivo', 'Ruido con ANC']
     for k, error in enumerate(e):
-        error_ax.plot(error, label=labels[k], alpha=alpha if k > 0 else 1)
+        if not log_scale:
+            error_ax.plot(error, label=labels[k], alpha=alpha if k > 0 else 1)
+        else:
+            error_ax.semilogy(error, label=labels[k], alpha=alpha if k > 0 else 1)
     error_ax.set_ylabel('$e(n)$', fontsize=16)
     error_ax.set_xlabel('$n$', fontsize=16)
     error_ax.grid()
@@ -245,4 +248,25 @@ def plot_execution_times(times=[[]], lengths=[], labels=[]):
     plt.legend()
     plt.grid()
     
+    plt.show()
+    
+
+def plot_spectrogram(x, fs, title, N=256):
+    """ Plot the spectrogram of the given samples
+        @param x Samples
+        @param fs Sampling frequency
+        @param title Plot's title
+        @param N Windows size
+    """
+    # Plot the spectrogram
+    fig, ax = plt.subplots(1, 1, figsize=(10, 7))
+    fig.suptitle(title, fontsize=18)
+
+    ax = [ax]
+    
+    ax[0].specgram(x, Fs=fs, NFFT=N, window=np.hamming(N), noverlap=0)
+    ax[0].set_ylabel('$f$ [Hz]', fontsize=16)
+    ax[0].set_xlabel('$t$ [s]', fontsize=16)
+    ax[0].grid()
+
     plt.show()

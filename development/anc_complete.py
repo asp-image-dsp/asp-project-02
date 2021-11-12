@@ -73,8 +73,8 @@ def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, f
         if e > 1:                                      # Re-initialise the algorithm if the conditions 
             P = np.eye(order) / delta                  # have changed so much that the error explodes
         lambda_eff = forget * P_norm                   # Compute the effective forget factor used in the algorithm
-        if lambda_eff > 1.0:                           # and restrict its value to be always less than 1.0 (to avoid instability)
-            lambda_eff = 1.0
+        #if lambda_eff > 1.0:                           # and restrict its value to be always less than 1.0 (to avoid instability)
+        #    lambda_eff = 1.0
         g_bar = (1 / lambda_eff) * np.dot(P, r_rls)     
         g = g_bar / (1 + np.dot(g_bar.T, r_rls))
         P = (1 / lambda_eff) * P - np.dot(g, g_bar.T)

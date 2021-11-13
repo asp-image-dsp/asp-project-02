@@ -1,7 +1,7 @@
 import numpy as np
 import time
 
-def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, force_hermitian=False, p_normalization=True, lambda_history=False):
+def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, force_hermitian=False, p_normalization=True, lambda_history=False, p_norm_history=False):
     """ Active Noise Cancelling
         Apply the active noise cancelling  RLS-based algorithm to compensate the
         noise by modeling the primary acoustic path and compensating the 
@@ -34,6 +34,7 @@ def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, f
     propagation_duration_estimated = 0
     algorithm_duration_estimated = 0
     update_duration_estimated = 0
+    total_duration = 0
     
     # Variable initialization for the algorithm
     rg = np.zeros((len(G), 1))      # Buffer for the input of G(z)
@@ -49,6 +50,8 @@ def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, f
         w_n = np.zeros((order, N))
     if lambda_history:
         lambda_n = np.zeros(N)
+    if p_norm_history:
+        p_norm_n = np.zeros(N)
     i = 0
     
     # Sample processing loop
@@ -75,7 +78,13 @@ def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, f
         if e > 1:                                      # Re-initialise the algorithm if the conditions 
             P = np.eye(order) / delta                  # have changed so much that the error explodes
         
-        lambda_eff = forget * P_norm                   # Compute the effective forget factor used in the algorithm
+        P_norm = np.linalg.norm(P)                     # Tracking P matrix's norm
+        if p_norm_history:
+            p_norm_n[i] = P_norm
+        if p_normalization:
+            lambda_eff = forget * P_norm                   # Compute the effective forget factor used in the algorithm
+        else:
+            lambda_eff = forget
         if (i > 100) and (lambda_eff > 1.0):           # and restrict its value to be always less than 1.0 (to avoid instability)
             lambda_eff = 1.0
         if lambda_history:
@@ -83,8 +92,6 @@ def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, f
         g_bar = (1 / lambda_eff) * np.dot(P, r_rls)     
         g = g_bar / (1 + np.dot(g_bar.T, r_rls))
         P = (1 / lambda_eff) * P - np.dot(g, g_bar.T)
-        if p_normalization:
-            P_norm = np.linalg.norm(P)                 # Tracking P matrix's norm
         if force_hermitian:
             P = (P + P.T) / 2                          # Force P matrix to be hermitian (to avoid instability)
         algorithm_end = time.time()
@@ -102,22 +109,24 @@ def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, f
         update_duration = update_end - update_start
         
         # Estimating duration of stages
+        total_duration += propagation_duration
+        total_duration += algorithm_duration
+        total_duration += update_duration
         propagation_duration_estimated = propagation_duration_estimated * (i - 1) / i + propagation_duration / i
         algorithm_duration_estimated = algorithm_duration_estimated * (i - 1) / i + algorithm_duration / i
         update_duration_estimated = update_duration_estimated * (i - 1) / i + update_duration / i
     
     # Print timing analysis
-    total_duration = propagation_duration_estimated + algorithm_duration_estimated + update_duration_estimated
     print(f'Took {total_duration} seconds')
     print(f'Propagation: {round((propagation_duration_estimated / total_duration) * 100, 3)} %')
     print(f'Algorithm: {round((algorithm_duration_estimated / total_duration) * 100, 3)} %')
     print(f'Update: {round((update_duration_estimated / total_duration) * 100, 3)} %')
     
-    if weight_history and not lambda_history:
-        return e_n, w, w_n
-    elif lambda_history and not weight_history:
-        return e_n, w, lambda_n
-    elif weight_history and lambda_history:
-        return e_n, w, w_n, lambda_n
-    else:
-        return e_n, w
+    result = [e_n, w]
+    if weight_history:
+        result += [w_n]
+    if lambda_history:
+        result += [lambda_n]
+    if p_norm_history:
+        result += [p_norm_n]
+    return result

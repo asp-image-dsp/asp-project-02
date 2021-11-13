@@ -1,7 +1,7 @@
 import numpy as np
 import time
 
-def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, force_hermitian=False, p_normalization=True, lambda_history=False, p_norm_history=False):
+def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, force_hermitian=False, p_normalization=True, lambda_history=False, p_norm_history=False, enable_reset=False):
     """ Active Noise Cancelling
         Apply the active noise cancelling  RLS-based algorithm to compensate the
         noise by modeling the primary acoustic path and compensating the 
@@ -29,6 +29,11 @@ def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, f
         
     # Parameters
     N = len(model)
+    var_win = 100
+    var_past = 500
+    var_threshold = 10
+    disable_period = var_win + var_past + 1000
+    reset_wait = disable_period
     
     # Variables for analysis
     propagation_duration_estimated = 0
@@ -43,6 +48,7 @@ def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, f
     y = np.zeros(len(F))            # Buffer for the input of F(z)
     w = np.zeros((order, 1))
     e_n = np.zeros(N)
+    var_n = np.zeros(N)
     P = np.eye(order) / delta
     P_norm = 1
 
@@ -75,8 +81,17 @@ def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, f
 
         algorithm_start = time.time()
         # Algorithm core computation        
-        if e > 1:                                      # Re-initialise the algorithm if the conditions 
-            P = np.eye(order) / delta                  # have changed so much that the error explodes
+        
+        # Re-initialise the algorithm if it's exploding
+        if enable_reset:
+            if i > var_win:
+                var_n[i-var_win] = e_n[i-var_win:i].var()
+            if reset_wait == 0:
+                if var_n[i-var_win] > var_threshold * var_n[i-var_past-var_win]:
+                    P = np.eye(order) / delta
+                    reset_wait = disable_period
+            else:
+                reset_wait -= 1        
         
         P_norm = np.linalg.norm(P)                     # Tracking P matrix's norm
         if p_norm_history:
@@ -117,10 +132,12 @@ def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, f
         update_duration_estimated = update_duration_estimated * (i - 1) / i + update_duration / i
     
     # Print timing analysis
+    total_duration_estimated = propagation_duration_estimated + algorithm_duration_estimated + update_duration_estimated
     print(f'Took {total_duration} seconds')
-    print(f'Propagation: {round((propagation_duration_estimated / total_duration) * 100, 3)} %')
-    print(f'Algorithm: {round((algorithm_duration_estimated / total_duration) * 100, 3)} %')
-    print(f'Update: {round((update_duration_estimated / total_duration) * 100, 3)} %')
+    print(f'Propagation: {round((propagation_duration_estimated / total_duration_estimated) * 100, 3)} %')
+    print(f'Algorithm: {round((algorithm_duration_estimated / total_duration_estimated) * 100, 3)} %')
+    print(f'Update: {round((update_duration_estimated / total_duration_estimated) * 100, 3)} %')
+    
     
     result = [e_n, w]
     if weight_history:

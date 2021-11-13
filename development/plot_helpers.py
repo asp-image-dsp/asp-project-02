@@ -10,7 +10,7 @@ def plot_anc_results(e, w=None, weight_plot='response', labels=None, alpha=None,
     """
     
     if w is not None:
-        fig, ax = plt.subplots(2, 1, figsize=(8, 8))
+        fig, ax = plt.subplots(2, 1, figsize=(8, 16))
         error_ax = ax[0]
     else:
         fig, ax = plt.subplots(1, 1, figsize=(8, 8))
@@ -130,7 +130,7 @@ def plot_error_analysis(input_noise, output_error, fs, title, a_weighting=False)
         H = apply_a_weighting(fee, H)
     
     # Plot results
-    fig, ax = plt.subplots(1, 2, figsize=(16, 7))
+    fig, ax = plt.subplots(1, 2, figsize=(16, 8))
     fig.suptitle(title + f' - Atenuación total = {A:.2f}dB', fontsize=25)
 
     ax[0].semilogy(fee / 1e3, Ree, label='Espectro de potencia del error de salida')

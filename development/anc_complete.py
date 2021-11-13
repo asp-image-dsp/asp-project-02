@@ -1,7 +1,7 @@
 import numpy as np
 import time
 
-def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, force_hermitian=False, p_normalization=True, lambda_history=False, p_norm_history=False, enable_reset=False):
+def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, force_hermitian=False, p_normalization=True, lambda_history=False, p_norm_history=False, reset_type=None):
     """ Active Noise Cancelling
         Apply the active noise cancelling  RLS-based algorithm to compensate the
         noise by modeling the primary acoustic path and compensating the 
@@ -83,7 +83,7 @@ def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, f
         # Algorithm core computation        
         
         # Re-initialise the algorithm if it's exploding
-        if enable_reset:
+        if reset_type == "var":
             if i > var_win:
                 var_n[i-var_win] = e_n[i-var_win:i].var()
             if reset_wait == 0:
@@ -92,7 +92,10 @@ def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, f
                     reset_wait = disable_period
             else:
                 reset_wait -= 1        
-        
+        elif reset_type == "static":
+            if e > 1:
+                P = np.eye(order) / delta
+                
         P_norm = np.linalg.norm(P)                     # Tracking P matrix's norm
         if p_norm_history:
             p_norm_n[i] = P_norm

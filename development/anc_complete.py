@@ -99,7 +99,7 @@ def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, f
         P_norm = np.linalg.norm(P)                     # Tracking P matrix's norm
         if p_norm_history:
             p_norm_n[i] = P_norm
-        if p_normalization:
+        if p_normalization and P_norm > 1:
             lambda_eff = forget * P_norm                   # Compute the effective forget factor used in the algorithm
         else:
             lambda_eff = forget

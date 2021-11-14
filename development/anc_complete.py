@@ -31,7 +31,7 @@ def anc_complete(model, G, F, order, forget, delta=1e-7, weight_history=False, f
     N = len(model)
     var_win = 100
     var_past = 500
-    var_threshold = 10
+    var_threshold = 5
     disable_period = var_win + var_past + 1000
     reset_wait = disable_period
     
